@@ -1,0 +1,9 @@
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.exe.config
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.exe
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.pdb
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\IOM.dll
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csprojAssemblyReference.cache
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csproj.CoreCompileInputs.cache
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csproj.CopyComplete
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.exe
+C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.pdb
