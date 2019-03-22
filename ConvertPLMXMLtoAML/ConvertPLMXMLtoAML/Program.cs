@@ -102,7 +102,7 @@ namespace ConvertPLMXMLtoAML
                         "<source_id>" + parentArasID + "</source_id>" +
                         "<related_id>" + childItemArasId + "<related_id>" +
                         bomPropAML +
-                        "<AML>";
+                        "</Item>";
 
 
                 }

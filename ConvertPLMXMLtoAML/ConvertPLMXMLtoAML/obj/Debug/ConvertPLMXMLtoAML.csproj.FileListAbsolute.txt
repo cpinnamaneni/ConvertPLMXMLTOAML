@@ -7,3 +7,11 @@ C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPL
 C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csproj.CopyComplete
 C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.exe
 C:\Users\Chaitanya P\source\repos\ConvertPLMXML-AML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.pdb
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.exe.config
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.exe
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\bin\Debug\ConvertPLMXMLtoAML.pdb
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csprojAssemblyReference.cache
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csproj.CoreCompileInputs.cache
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.csproj.CopyComplete
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.exe
+C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\obj\Debug\ConvertPLMXMLtoAML.pdb
