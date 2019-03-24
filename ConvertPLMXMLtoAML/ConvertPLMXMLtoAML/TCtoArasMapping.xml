@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
 <Item>
-  <Type tc_ItemType="Design" tc_RevisionType="Design Revision" arasItem="Part" aras_Class="" itemIdAtt="catalogueId" tagTypeinXML="Design"></Type>
-  <Type tc_ItemType="Item" tc_RevisionType="ItemRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>
-  <Type tc_ItemType="A6_auto_product" tc_RevisionType="A6_auto_productRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>
+  <!--<Type tc_ItemType="Design" tc_RevisionType="Design Revision" arasItem="Part" aras_Class="" itemIdAtt="catalogueId" tagTypeinXML="Design"></Type>
+  <Type tc_ItemType="Item" tc_RevisionType="ItemRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>-->
+  <Type tc_ItemType="A9_autoproduct" tc_RevisionType="A9_autoproductRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>
 </Item>
