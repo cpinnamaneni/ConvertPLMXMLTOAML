@@ -2,5 +2,13 @@
 <Item>
   <!--<Type tc_ItemType="Design" tc_RevisionType="Design Revision" arasItem="Part" aras_Class="" itemIdAtt="catalogueId" tagTypeinXML="Design"></Type>
   <Type tc_ItemType="Item" tc_RevisionType="ItemRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>-->
-  <Type tc_ItemType="A9_autoproduct" tc_RevisionType="A9_autoproductRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product"></Type>
+  <Type tc_ItemType="A9_autoproduct" tc_RevisionType="A9_autoproductRevision" arasItem="Part" aras_Class="" itemIdAtt="productId" tagTypeinXML="Product">
+    <Properties tc_type="Item" tc_prop="" aras_prop="" tc_prop_place=""></Properties>
+    <Properties tc_type="Revision" tc_prop="Description" aras_prop="description" tc_prop_place="ProductRevision"></Properties>
+    <Properties tc_type="Revision" tc_prop="a9_is_ECAD_Item" aras_prop="cs_is_ecad_item" tc_prop_place="UserData"></Properties>
+    <Properties tc_type="Revision" tc_prop="a9_IsEndItem" aras_prop="cs_isenditem" tc_prop_place="UserData"></Properties>
+    <Properties tc_type="Revision" tc_prop="a9_IsRawMaterial" aras_prop="cs_israwmaterial" tc_prop_place="UserData"></Properties>
+    <Properties tc_type="Revision" tc_prop="a9_IsServicable" aras_prop="cs_isservicable" tc_prop_place="UserData"></Properties>
+    <Properties tc_type="Revision" tc_prop="item_comment" aras_prop="cs_item_comment" tc_prop_place="Form"></Properties>
+  </Type>
 </Item>

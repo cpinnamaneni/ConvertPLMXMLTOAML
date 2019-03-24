@@ -14,8 +14,12 @@ namespace ConvertPLMXMLtoAML
 {
     class Program
     {
+        static XmlDocument mappingXMLDoc = new XmlDocument();
         static List<partTypes> PartTypeList = new List<partTypes>();
         static Hashtable xmlArasIDMapping = new Hashtable();
+
+        static Hashtable itemPropertyMapping = new Hashtable();
+        static Hashtable itemRevPropertyMapping = new Hashtable();
 
         static XmlNamespaceManager oManager = new XmlNamespaceManager(new NameTable());
 
@@ -35,14 +39,14 @@ namespace ConvertPLMXMLtoAML
 
             oManager.AddNamespace("ns", "http://www.plmxml.org/Schemas/PLMXMLSchema");
 
-            XmlDocument mappingXMLDoc = new XmlDocument();
+            
             String pLMXMLFolderPath = @"C:\Chaitanya\Offical\Projects\Magna\Development\PLMXML-AML\Sample from George\Export";
             String pLMXMLFileName = "ASP90000001_AA01_1-Name_01_Cosma4.xml";
 
             mappingXMLDoc.Load(@"C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\TCtoArasMapping.xml");
 
             //get the Part Types in Mapping Sheet 
-            ProcessMappingXML(mappingXMLDoc);
+            ProcessMappingXML();
 
 
             ProcessPLMXML(pLMXMLFolderPath, pLMXMLFileName);
@@ -178,7 +182,6 @@ namespace ConvertPLMXMLtoAML
             String bompropaml = "";
             return bompropaml;
         }
-        static int partid = 0;
         private static string GetAddItemAMLforType(XmlDocument plmXMLDoc, partTypes partType)
         {
             String AML = "";
@@ -201,7 +204,7 @@ namespace ConvertPLMXMLtoAML
                 String itemElementID = ItemtypeNode.Attributes["id"].Value;
 
 
-                string itemPropAML = addItemProperties(ItemtypeNode);
+                string itemPropAML = addItemProperties(ItemtypeNode, tcItemTtpe);
 
                 //read Revision Elements
                 String revXPath = "//ns:" + tagTypeinXML + "Revision[@subType='" + tcRevType + "' and @masterRef='#" + itemElementID + "']";
@@ -232,7 +235,7 @@ namespace ConvertPLMXMLtoAML
 
                     }
 
-                    string itemRevPropAML = addItemRevProperties(ItemRevtypeNode);
+                    string itemRevPropAML = addItemRevProperties(ItemRevtypeNode, tcRevType, tagTypeinXML + "Revision", plmXMLDoc, revElementId);
                     string addFilesAML = addCADAndOtherFiles(ItemRevtypeNode);
 
                     AML = "<AML><Item type='" + arasItemType + "' action='merge' id='" + newArasID + "'>" +
@@ -328,22 +331,108 @@ namespace ConvertPLMXMLtoAML
             return addFilesAML;
         }
 
-        private static string addItemRevProperties(XmlNode itemRevtypeNode)
+        private static string addItemRevProperties(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId)
         {
             String itemRevPropertiesAML = "";
 
+            String propXpath = "/Item/Type[@tc_RevisionType='" + tcRevType + "']/Properties[@tc_type='Revision']";
+
+            XmlNodeList mappingPropList = mappingXMLDoc.SelectNodes(propXpath);
+
+            foreach(XmlNode mappingProp in mappingPropList)
+            {
+                String xpathforPropNode = "";
+                String propPlace = mappingProp.Attributes["tc_prop_place"].Value;
+                String tc_prop = mappingProp.Attributes["tc_prop"].Value;
+                String aras_prop = mappingProp.Attributes["aras_prop"].Value;
+
+                if (propPlace == "UserData")
+                {
+                    xpathforPropNode = "//ns:"+ tagTypeinXML + "[@id='"+ revElementId + "']/ns:UserData/ns:UserValue[@title='"+ tc_prop + "']";
+
+                    XmlNode propNode = itemRevtypeNode.SelectSingleNode(xpathforPropNode,oManager);
+                    if (propNode == null)
+                    {
+                        continue;
+                    }
+                    String propValue = propNode.Attributes["value"].Value;
+                    if(!string.IsNullOrEmpty(propValue))
+                    {
+                        itemRevPropertiesAML += "<" + aras_prop + ">" + propValue + "</" + aras_prop + ">";
+                    }
+
+                }
+                else if (propPlace == tagTypeinXML)
+                {
+                    xpathforPropNode = "//ns:" + tagTypeinXML + "[@id='" + revElementId + "']/ns:" + tc_prop + "";
+
+                    XmlNode propNode = itemRevtypeNode.SelectSingleNode(xpathforPropNode, oManager);
+                    if(propNode == null)
+                    {
+                        continue;
+                    }
+                    String propValue = propNode.InnerText;
+
+                    if (!string.IsNullOrEmpty(propValue))
+                    {
+                        itemRevPropertiesAML += "<" + aras_prop + ">" + propValue + "</" + aras_prop + ">";
+                    }
+
+                }
+                else if (propPlace == "Form")
+                {
+                    itemRevPropertiesAML += getFormAttributes(plmXMLDoc, itemRevtypeNode, tagTypeinXML, revElementId, tc_prop, aras_prop);
+                }
+
+            }
 
             return itemRevPropertiesAML;
         }
 
-        private static string addItemProperties(XmlNode itemtypeNode)
+        private static string getFormAttributes(XmlDocument plmXMLDoc, XmlNode itemRevtypeNode, string tagTypeinXML, string revElementId, string tc_prop, string aras_prop)
+        {
+            String formPropAML = "";
+
+            //get formID 
+            String xpathforAssocFormNode = "//ns:" + tagTypeinXML + "[@id='" + revElementId + "']/ns:AssociatedForm";
+
+            XmlNode assocFormNode = itemRevtypeNode.SelectSingleNode(xpathforAssocFormNode, oManager);
+
+            if (assocFormNode != null)
+            {
+                String assocFormIdNum = assocFormNode.Attributes["formRef"].Value;
+                String assocFormId = assocFormIdNum.Remove(0, 1);
+                //get the FormElementNode
+                String xpathforFormElementNode = "//ns:Form[@id='" + assocFormId + "']/ns:UserData/ns:UserValue[@title='" + tc_prop + "']";
+
+                XmlNode FormpropNode = plmXMLDoc.SelectSingleNode(xpathforFormElementNode, oManager);
+                if(FormpropNode != null)
+                {
+                    String propValue = FormpropNode.Attributes["value"].Value;;
+
+                    if (!string.IsNullOrEmpty(propValue))
+                    {
+                        formPropAML += "<" + aras_prop + ">" + propValue + "</" + aras_prop + ">";
+                    }
+                }
+            }
+                
+
+
+            return formPropAML;
+        }
+
+        private static string addItemProperties(XmlNode itemtypeNode, string tcItemTtpe)
         {
             String itemPropertiesAML = "";
+
+            String propXpath = "/Item/Type[@tc_ItemType='" + tcItemTtpe + "']/Properties[@tc_type='Item']";
+                //mappingXMLDoc
 
             return itemPropertiesAML;
         }
 
-        private static void ProcessMappingXML(XmlDocument mappingXMLDoc)
+        private static void ProcessMappingXML()
         {
             XmlNodeList TcPartTypesList = mappingXMLDoc.SelectNodes("/Item/Type");
             foreach (XmlNode TcPAthType in TcPartTypesList)
@@ -356,6 +445,8 @@ namespace ConvertPLMXMLtoAML
                 String arasItem = TcPAthType.Attributes["arasItem"].Value;
 
                 PartTypeList.Add(new partTypes(tcItemtype, tcRevtype, arasClass, itemIdAtt, tagTypeinXML, arasItem));
+
+                //get Item Properties
             }
         }
     }
