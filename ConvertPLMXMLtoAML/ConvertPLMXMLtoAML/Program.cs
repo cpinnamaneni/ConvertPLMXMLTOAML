@@ -14,6 +14,8 @@ namespace ConvertPLMXMLtoAML
 {
     class Program
     {
+        static String pLMXMLFolderPath = "";
+
         static XmlDocument mappingXMLDoc = new XmlDocument();
         static List<partTypes> PartTypeList = new List<partTypes>();
         static Hashtable xmlArasIDMapping = new Hashtable();
@@ -40,10 +42,11 @@ namespace ConvertPLMXMLtoAML
             oManager.AddNamespace("ns", "http://www.plmxml.org/Schemas/PLMXMLSchema");
 
             
-            String pLMXMLFolderPath = @"C:\Chaitanya\Offical\Projects\Magna\Development\PLMXML-AML\Sample from George\Export";
+            pLMXMLFolderPath = @"C:\Chaitanya\Offical\Projects\Magna\Development\PLMXML-AML\Sample from George\Export";
             String pLMXMLFileName = "ASP90000001_AA01_1-Name_01_Cosma4.xml";
 
-            mappingXMLDoc.Load(@"C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\TCtoArasMapping.xml");
+            mappingXMLDoc.Load(@".\TCtoArasMapping.xml");
+            //mappingXMLDoc.Load(@"C:\Users\Chaitanya P\Documents\GitHub\Aras\ConvertPLMXMLTOAML\ConvertPLMXMLtoAML\ConvertPLMXMLtoAML\TCtoArasMapping.xml");
 
             //get the Part Types in Mapping Sheet 
             ProcessMappingXML();
@@ -236,7 +239,7 @@ namespace ConvertPLMXMLtoAML
                     }
 
                     string itemRevPropAML = addItemRevProperties(ItemRevtypeNode, tcRevType, tagTypeinXML + "Revision", plmXMLDoc, revElementId);
-                    string addFilesAML = addCADAndOtherFiles(ItemRevtypeNode);
+                    string addFilesAML = addCADAndOtherFiles(ItemRevtypeNode, tcRevType, tagTypeinXML + "Revision", plmXMLDoc, revElementId, itemId, major_rev);
 
                     AML = "<AML><Item type='" + arasItemType + "' action='merge' id='" + newArasID + "'>" +
                         "<item_number>" + itemId + "</item_number>" +
@@ -244,6 +247,7 @@ namespace ConvertPLMXMLtoAML
                         "<name>" + itemName + "</name>" +
                         itemPropAML +
                         itemRevPropAML +
+                        addFilesAML +
                         "</Item></AML>";
                     Item Result = inn.applyAML(AML);
 
@@ -323,12 +327,282 @@ namespace ConvertPLMXMLtoAML
             return arasID;
         }
 
-        private static string addCADAndOtherFiles(XmlNode itemRevtypeNode)
+        private static string addCADAndOtherFiles(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId, string itemId, string major_rev)
         {
             String addFilesAML = "";
 
+            addFilesAML += getThubnailAML(itemRevtypeNode, tcRevType, tagTypeinXML , plmXMLDoc, revElementId); 
+
+            addFilesAML += getCADFilesAML(itemRevtypeNode, tcRevType, tagTypeinXML, plmXMLDoc, revElementId, itemId, major_rev);
 
             return addFilesAML;
+        }
+
+        private static string getCADFilesAML(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId, string itemId, string major_rev)
+        {
+            String cadFilesAML = "";
+            //
+            String nativeFileId = getNativeFileID(itemRevtypeNode, tcRevType, tagTypeinXML, plmXMLDoc, revElementId);
+            List <String> getNonNativeFileIdList = getNonNativeFileIds(itemRevtypeNode, tcRevType, tagTypeinXML, plmXMLDoc, revElementId);
+            String itemAction = "";
+            String cadID = getArasID("CAD", itemId, major_rev, out itemAction);
+
+            if (String.IsNullOrEmpty(itemAction) && String.IsNullOrEmpty(cadID))
+            {
+                return "";
+            }
+
+            if (itemAction == "version")
+            {
+                cadID = getNewRevisionID("CAD", cadID);
+
+                if (String.IsNullOrEmpty(cadID))
+                {
+                    return "";
+                }
+                else
+                {
+                    itemAction = "merge";
+                }
+
+            }
+
+            cadFilesAML += "<Relationships>" +
+                            "<Item type = 'Part CAD' action = 'add' > " +
+                             "<related_id>" +
+                             "<Item type='CAD' action='" + itemAction + "' id='" + cadID + "'>" +
+                             "<item_number>" + itemId + "</item_number>" +
+                             "<major_rev>" + major_rev + "</major_rev>" +
+                             "<native_file>" + nativeFileId + "</native_file>" +
+                             "<Relationships>";
+                             
+            foreach(String getNonNativeFileId in getNonNativeFileIdList)
+            {
+                cadFilesAML += "<Item type='CADFiles' action='add'>" +
+                                "<attached_file>" + getNonNativeFileId + "</attached_file>" +
+                              "</Item>";
+            }
+
+            cadFilesAML += "</Relationships>" +
+                             "</Item>" +
+                             "</related_id>" +
+                             "</Item >" +
+                             "</Relationships > ";
+
+            return cadFilesAML;
+        }
+
+        private static List<String> getNonNativeFileIds(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId)
+        {
+            List<String> nonNativeFilesIds = new List<string>();
+
+            String dsXpath = "/Item/Type[@tc_RevisionType='" + tcRevType + "']/Files/DataSet[@in_cad='true' and @is_native='false']";
+
+            XmlNodeList mappingDSNodeList = mappingXMLDoc.SelectNodes(dsXpath);
+            foreach (XmlNode mappingDSNode in mappingDSNodeList)
+            {
+                String nonNativeFileformat = mappingDSNode.Attributes["format"].Value;
+
+                if (!String.IsNullOrEmpty(nonNativeFileformat))
+                {
+                    String xpathforAssocDSNode = "//ns:" + tagTypeinXML + "[@id='" + revElementId + "']/ns:AssociatedDataSet";
+
+                    XmlNodeList assocDSNodeList = itemRevtypeNode.SelectNodes(xpathforAssocDSNode, oManager);
+
+
+                    foreach (XmlNode assocDSNode in assocDSNodeList)
+                    {
+                        String assocDSIdNum = assocDSNode.Attributes["dataSetRef"].Value;
+                        String assocDSId = assocDSIdNum.Remove(0, 1);
+                        //get the FormElementNode
+                        String xpathforDSElementNode = "//ns:DataSet[@id='" + assocDSId + "' and @type='" + nonNativeFileformat + "']";
+
+                        XmlNodeList DatasetNodeList = plmXMLDoc.SelectNodes(xpathforDSElementNode, oManager);
+                        foreach (XmlNode DatasetNode in DatasetNodeList)
+                        {
+                            String NameRefIdNum = DatasetNode.Attributes["memberRefs"].Value;
+                            String DatasetName = DatasetNode.Attributes["name"].Value;
+                            String NameRefId = NameRefIdNum.Remove(0, 1);
+
+                            String xpathforExtFileNode = "//ns:ExternalFile[@id='" + NameRefId + "']";
+
+                            XmlNode ExtrFileNode = plmXMLDoc.SelectSingleNode(xpathforExtFileNode, oManager);
+                            if (ExtrFileNode != null)
+                            {
+                                String dsFilePath = ExtrFileNode.Attributes["locationRef"].Value;
+                                if (!String.IsNullOrEmpty(dsFilePath))
+                                {
+                                    String compfilePath = Path.Combine(pLMXMLFolderPath, dsFilePath);
+                                    String FileName = Path.GetFileName(compfilePath);
+
+                                    Item fileObj = inn.newItem("File", "add");
+                                    fileObj.setProperty("filename", FileName);
+                                    fileObj.attachPhysicalFile(compfilePath);
+                                    fileObj = fileObj.apply();
+                                    if (fileObj.isError())
+                                    {
+
+                                        //is_error = true;
+                                        //LineHasError = true;
+                                        //updateLog("\t\tError while adding file '" + realFileName + "'.." + fileObj.getErrorString());
+
+                                        //throw new Exception();
+                                    }
+                                    nonNativeFilesIds.Add(fileObj.getID());
+                                }
+                            }
+                        }
+                    }
+                }
+
+
+            }
+
+                return nonNativeFilesIds;
+        }
+
+        private static string getNativeFileID(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId)
+        {
+            String NativeFileId = "";
+
+            String dsXpath = "/Item/Type[@tc_RevisionType='" + tcRevType + "']/Files/DataSet[@in_cad='true' and @is_native='true']";
+
+            XmlNode mappingDSNode = mappingXMLDoc.SelectSingleNode(dsXpath);
+            if(mappingDSNode != null)
+            {
+                String nativeFileformat = mappingDSNode.Attributes["format"].Value;
+
+                if (!String.IsNullOrEmpty(nativeFileformat))
+                {
+                    String xpathforAssocDSNode = "//ns:" + tagTypeinXML + "[@id='" + revElementId + "']/ns:AssociatedDataSet";
+
+                    XmlNodeList assocDSNodeList = itemRevtypeNode.SelectNodes(xpathforAssocDSNode, oManager);
+
+
+                    foreach (XmlNode assocDSNode in assocDSNodeList)
+                    {
+                        String assocDSIdNum = assocDSNode.Attributes["dataSetRef"].Value;
+                        String assocDSId = assocDSIdNum.Remove(0, 1);
+                        //get the FormElementNode
+                        String xpathforDSElementNode = "//ns:DataSet[@id='" + assocDSId + "' and @type='" + nativeFileformat + "']";
+
+                        XmlNode DatasetNode = plmXMLDoc.SelectSingleNode(xpathforDSElementNode, oManager);
+                        if (DatasetNode != null)
+                        {
+                            String NameRefIdNum = DatasetNode.Attributes["memberRefs"].Value;
+                            String DatasetName = DatasetNode.Attributes["name"].Value;
+                            String NameRefId = NameRefIdNum.Remove(0, 1);
+
+                            String xpathforExtFileNode = "//ns:ExternalFile[@id='" + NameRefId + "']";
+
+                            XmlNode ExtrFileNode = plmXMLDoc.SelectSingleNode(xpathforExtFileNode, oManager);
+                            if (ExtrFileNode != null)
+                            {
+                                String dsFilePath = ExtrFileNode.Attributes["locationRef"].Value;
+                                if (!String.IsNullOrEmpty(dsFilePath))
+                                {
+                                    String compfilePath = Path.Combine(pLMXMLFolderPath, dsFilePath);
+                                    String FileName = Path.GetFileName(compfilePath);
+
+                                    Item fileObj = inn.newItem("File", "add");
+                                    fileObj.setProperty("filename", FileName);
+                                    fileObj.attachPhysicalFile(compfilePath);
+                                    fileObj = fileObj.apply();
+                                    if (fileObj.isError())
+                                    {
+
+                                        //is_error = true;
+                                        //LineHasError = true;
+                                        //updateLog("\t\tError while adding file '" + realFileName + "'.." + fileObj.getErrorString());
+
+                                        //throw new Exception();
+                                    }
+                                    NativeFileId = fileObj.getID();
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+                }
+
+
+            }
+
+            return NativeFileId;
+        }
+
+        private static string getThubnailAML(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId)
+        {
+            String thumbnailAML = "";
+
+            // get the Dataset Mapping
+            String dsXpath = "/Item/Type[@tc_RevisionType='" + tcRevType + "']/Files/DataSet[@is_thubnail='true']";
+
+            XmlNode mappingDSNode = mappingXMLDoc.SelectSingleNode(dsXpath);
+            if(mappingDSNode != null)
+            {
+                String thubnailformat = mappingDSNode.Attributes["format"].Value;
+
+                if(!String.IsNullOrEmpty(thubnailformat))
+                {
+                    //getDatasets of the Part...
+
+                    String xpathforAssocDSNode = "//ns:" + tagTypeinXML + "[@id='" + revElementId + "']/ns:AssociatedDataSet";
+
+                    XmlNodeList assocDSNodeList = itemRevtypeNode.SelectNodes(xpathforAssocDSNode, oManager);
+
+
+                    foreach (XmlNode assocDSNode in assocDSNodeList)
+                    {
+                        String assocDSIdNum = assocDSNode.Attributes["dataSetRef"].Value;
+                        String assocDSId = assocDSIdNum.Remove(0, 1);
+                        //get the FormElementNode
+                        String xpathforDSElementNode = "//ns:DataSet[@id='" + assocDSId + "' and @type='"+ thubnailformat + "']";
+
+                        XmlNode DatasetNode = plmXMLDoc.SelectSingleNode(xpathforDSElementNode, oManager);
+                        if (DatasetNode != null)
+                        {
+                            String NameRefIdNum = DatasetNode.Attributes["memberRefs"].Value;
+                            String DatasetName = DatasetNode.Attributes["name"].Value;
+                            String NameRefId = NameRefIdNum.Remove(0,1);
+
+                            String xpathforExtFileNode = "//ns:ExternalFile[@id='" + NameRefId + "']";
+
+                            XmlNode ExtrFileNode = plmXMLDoc.SelectSingleNode(xpathforExtFileNode, oManager);
+                            if(ExtrFileNode != null)
+                            {
+                                String dsFilePath = ExtrFileNode.Attributes["locationRef"].Value;
+                                if(!String.IsNullOrEmpty(dsFilePath))
+                                {
+                                    String compfilePath = Path.Combine(pLMXMLFolderPath, dsFilePath);
+                                    String FileName = Path.GetFileName(compfilePath);
+
+                                    Item fileObj = inn.newItem("File", "add");
+                                    fileObj.setProperty("filename", FileName);
+                                    fileObj.attachPhysicalFile(compfilePath);
+                                    fileObj = fileObj.apply();
+                                    if (fileObj.isError())
+                                    {
+
+                                        //is_error = true;
+                                        //LineHasError = true;
+                                        //updateLog("\t\tError while adding file '" + realFileName + "'.." + fileObj.getErrorString());
+
+                                        //throw new Exception();
+                                    }
+                                    string fileid = fileObj.getID();
+                                    thumbnailAML += "<thumbnail>vault:///?fileId=" + fileid + "</thumbnail>";
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                }
+            }
+            return thumbnailAML;
         }
 
         private static string addItemRevProperties(XmlNode itemRevtypeNode, string tcRevType, string tagTypeinXML, XmlDocument plmXMLDoc, string revElementId)
@@ -415,10 +689,7 @@ namespace ConvertPLMXMLtoAML
                         formPropAML += "<" + aras_prop + ">" + propValue + "</" + aras_prop + ">";
                     }
                 }
-            }
-                
-
-
+            }         
             return formPropAML;
         }
 
