@@ -15,5 +15,10 @@
       <DataSet format="PDF" is_thubnail="false" in_cad="true" is_native="false"></DataSet>
       <DataSet format="DirectModel" is_thubnail="false" in_cad="true" is_native="true"></DataSet>
     </Files>
+    <StateMapping>
+      <state tc_State_name="A9_Preliminary" aras_state_name ="Preliminary" aras_state_id="72A2322564FE4193933CFB5339487A06"/>
+      <state tc_State_name="A9_DesignComplete" aras_state_name ="In Review" aras_state_id="AA93A121BC7346C4907F69820303D2A4"/>
+      <state tc_State_name="A9_Released" aras_state_name ="Released" aras_state_id="42BB3B183A7748C3B4AA9D33F7BF70AC"/>
+    </StateMapping>
   </Type>
 </Item>
